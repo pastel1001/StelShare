@@ -1,25 +1,17 @@
-{% extends 'base.html' %}
-{% block content %}
-<h2>{{ giveaway.title }}</h2>
-<p>멤버: {{ giveaway.member_tag }} | 마감: {{ giveaway.end_date.strftime('%Y-%m-%d %H:%M') }}</p>
-
-<hr style="border-color:#232736;">
-
-<h3>나눔 신청 조건 검증</h3>
-{% if can_apply %}
-    <p style="color:#10b981;">✅ 조건이 충족되었습니다! 신청서를 작성해 주세요.</p>
-    <form action="/giveaway/{{ giveaway.id }}" method="POST" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:15px; max-width:500px;">
-        {% if giveaway.condition_type == 'follow' %}
-            <label>학생증 인증샷 업로드 (이름/생년월일 마스킹 필수):</label>
-            <input type="file" name="cert_image" required>
-        {% endif %}
-        
-        <label>주접글 또는 전달할 메시지:</label>
-        <textarea name="fan_text" rows="4" placeholder="애정이 담긴 글을 작성해 주세요." style="padding:10px;"></textarea>
-
-        <button type="submit" class="btn btn-success">나눔 신청서 제출하기</button>
-    </form>
-{% else %}
-    <p style="color:#ef4444;">❌ 신청할 수 없습니다: {{ fail_reason }}</p>
+{% if session.get('user_id') == giveaway.giver_id and giveaway.status == '진행중' %}
+<form action="/giveaway/{{ giveaway.id }}/edit_conditions" method="POST" class="border p-3 rounded mb-4">
+  <h5>나눔 조건 변경</h5>
+  <div class="mb-2">
+    <label>팔로우/구독 개월 수</label>
+    <input type="number" name="min_months" value="{{ giveaway.min_months }}" min="1" class="form-control">
+  </div>
+  <div class="mb-2">
+    <label>주접글 조건</label>
+    <select name="require_comment" class="form-select">
+      <option value="true" {% if giveaway.require_comment %}selected{% endif %}>쓴다</option>
+      <option value="false" {% if not giveaway.require_comment %}selected{% endif %}>안 쓴다</option>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-warning btn-sm">조건 수정하기</button>
+</form>
 {% endif %}
-{% endblock %}
