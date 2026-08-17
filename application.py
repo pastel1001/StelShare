@@ -1,7 +1,8 @@
 import os
 import random
+import json
 import urllib.parse
-import requests
+import urllib.request
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
@@ -32,7 +33,7 @@ STELLIVE_MEMBERS = [
     "유즈하 리코"
 ]
 
-# 네이버 OAuth 설정 (실제 서비스 시 본인의 Client ID/Secret 입력)
+# 네이버 OAuth 설정
 NAVER_CLIENT_ID = "YOUR_NAVER_CLIENT_ID"
 NAVER_CLIENT_SECRET = "YOUR_NAVER_CLIENT_SECRET"
 NAVER_REDIRECT_URI = "http://127.0.0.1:5000/login/naver/callback"
@@ -44,9 +45,9 @@ class Giveaway(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     image_url = db.Column(db.String(200))
-    giver_id = db.Column(db.String(50), nullable=False) # 등록자 네이버 아이디
-    target_member = db.Column(db.String(50), nullable=False, default="스텔라이브 전체") # 11명 멤버 중 선택
-    min_months = db.Column(db.Integer, default=1, nullable=False) # 치지직 팔로우/구독 기간(개월)
+    giver_id = db.Column(db.String(50), nullable=False)
+    target_member = db.Column(db.String(50), nullable=False, default="스텔라이브 전체")
+    min_months = db.Column(db.Integer, default=1, nullable=False)
     require_comment = db.Column(db.Boolean, default=False)
     end_date = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String(20), default='진행중')
@@ -55,12 +56,12 @@ class Giveaway(db.Model):
 class Application(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     giveaway_id = db.Column(db.Integer, db.ForeignKey('giveaway.id'), nullable=False)
-    applicant_id = db.Column(db.String(50), nullable=False) # 신청자 네이버 아이디
-    x_nickname = db.Column(db.String(50), nullable=False) # X(트위터) 아이디
-    chzzk_nickname = db.Column(db.String(50), nullable=False) # 치지직 닉네임
-    chzzk_proof_image = db.Column(db.String(200)) # 치지직 팔로우/구독 인증샷
+    applicant_id = db.Column(db.String(50), nullable=False)
+    x_nickname = db.Column(db.String(50), nullable=False)
+    chzzk_nickname = db.Column(db.String(50), nullable=False)
+    chzzk_proof_image = db.Column(db.String(200))
     is_student = db.Column(db.Boolean, default=False)
-    proof_image = db.Column(db.String(200)) # 학생증 인증샷
+    proof_image = db.Column(db.String(200))
     comment = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.now)
 
@@ -83,13 +84,12 @@ def check_and_draw_winners():
         giveaway.status = '마감'
     db.session.commit()
 
-# 업로드 파일 제공 라우트
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # ---------------------------------------------------------
-# 네이버 로그인 라우트
+# 네이버 로그인 라우트 (파이썬 기본 내장 모듈 사용)
 # ---------------------------------------------------------
 @app.route('/login/naver')
 def naver_login():
@@ -111,27 +111,34 @@ def naver_callback():
         f"&client_id={NAVER_CLIENT_ID}&client_secret={NAVER_CLIENT_SECRET}"
         f"&code={code}&state={state}"
     )
-    res = requests.get(token_url).json()
-    access_token = res.get('access_token')
+    
+    try:
+        req = urllib.request.Request(token_url)
+        with urllib.request.urlopen(req) as response:
+            res = json.loads(response.read().decode())
+        access_token = res.get('access_token')
 
-    if access_token:
-        profile_res = requests.get(
-            "https://openapi.naver.com/v1/nid/me",
-            headers={"Authorization": f"Bearer {access_token}"}
-        ).json()
-        
-        if profile_res.get('resultcode') == '00':
-            user_data = profile_res.get('response')
-            session['user_id'] = user_data.get('id', user_data.get('email', 'naver_user'))
-            session['user_name'] = user_data.get('nickname', user_data.get('name', '네이버 유저'))
-            session['login_type'] = 'naver'
-            flash(f"네이버 계정({session['user_id']})으로 로그인되었습니다.")
-            return redirect(url_for('index'))
+        if access_token:
+            profile_req = urllib.request.Request(
+                "https://openapi.naver.com/v1/nid/me",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            with urllib.request.urlopen(profile_req) as profile_res_raw:
+                profile_res = json.loads(profile_res_raw.read().decode())
+
+            if profile_res.get('resultcode') == '00':
+                user_data = profile_res.get('response')
+                session['user_id'] = user_data.get('id', user_data.get('email', 'naver_user'))
+                session['user_name'] = user_data.get('nickname', user_data.get('name', '네이버 유저'))
+                session['login_type'] = 'naver'
+                flash(f"네이버 계정({session['user_id']})으로 로그인되었습니다.")
+                return redirect(url_for('index'))
+    except Exception as e:
+        print("네이버 로그인 오류:", e)
 
     flash("네이버 로그인 실패")
     return redirect(url_for('index'))
 
-# 테스트용 간이 네이버 로그인 (개발/실습용)
 @app.route('/login/mock/<naver_id>')
 def mock_login(naver_id):
     session['user_id'] = naver_id
@@ -215,7 +222,6 @@ def apply(id):
     is_student = (request.form.get('user_type') == 'student')
     comment = request.form.get('comment', '')
 
-    # 치지직 인증샷 처리
     chzzk_proof = request.files.get('chzzk_proof_image')
     chzzk_proof_url = ''
     if chzzk_proof and chzzk_proof.filename != '':
@@ -223,7 +229,6 @@ def apply(id):
         chzzk_proof.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         chzzk_proof_url = f"/uploads/{filename}"
 
-    # 학생증 인증샷 처리
     proof_image_url = ''
     file = request.files.get('proof_image')
     if is_student and file and file.filename != '':
