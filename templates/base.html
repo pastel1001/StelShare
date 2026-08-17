@@ -3,59 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StelShare - 스텔라이브 굿즈 나눔터</title>
-  <!-- Bootstrap 5 CSS -->
+  <title>스텔라이브 굿즈 나눔</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f8f9fa; font-family: 'Pretendard', sans-serif; }
-    .navbar-brand { font-weight: bold; color: #6f42c1 !important; }
-    .card { border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    body { background-color: #f8f9fa; }
+    .naver-badge { background-color: #03C75A; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; }
   </style>
 </head>
 <body>
-
-  <!-- 네비게이션 바 -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
     <div class="container">
-      <a class="navbar-brand" href="/">🎁 StelShare</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="/">홈</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/create">나눔 등록</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/mypage">마이페이지</a>
-          </li>
-        </ul>
+      <a class="navbar-brand fw-bold" href="/">🔮 STELLIVE GIVEAWAY</a>
+      
+      <div class="d-flex align-items-center">
+        {% if session.get('user_id') %}
+          <!-- 네이버 아이디 상단 좌측/메뉴에 명확하게 표시 -->
+          <span class="naver-badge me-3">
+            🟢 네이버 로그인: <strong>{{ session.get('user_id') }}</strong>
+          </span>
+          <a href="/create" class="btn btn-primary btn-sm me-2">나눔 등록</a>
+          <a href="/mypage" class="btn btn-outline-light btn-sm me-2">마이페이지</a>
+          <a href="/logout" class="btn btn-outline-danger btn-sm">로그아웃</a>
+        {% else %}
+          <!-- 네이버 로그인 버튼 & 테스트 간이 로그인 -->
+          <a href="/login/naver" class="btn btn-success btn-sm me-2">네이버 로그인</a>
+          <a href="/login/mock/stellive_fan1" class="btn btn-outline-warning btn-sm me-1">[테스트] 유저1</a>
+          <a href="/login/mock/stellive_giver" class="btn btn-outline-info btn-sm">[테스트] 나눔자</a>
+        {% endif %}
       </div>
     </div>
   </nav>
 
-  <!-- 알림 메시지 (Flash) -->
   <div class="container">
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         {% for message in messages %}
           <div class="alert alert-info alert-dismissible fade show" role="alert">
             {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
           </div>
         {% endfor %}
       {% endif %}
     {% endwith %}
 
-    <!-- 본문 영역 -->
-    {% block content %}
-    {% endblock %}
+    {% block content %}{% endblock %}
   </div>
 
-  <!-- Bootstrap 5 JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
