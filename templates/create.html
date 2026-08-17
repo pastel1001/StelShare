@@ -1,52 +1,56 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4" style="max-width: 600px;">
-  <h2>🎁 나눔 물품 등록</h2>
-  <form action="/create" method="POST" enctype="multipart/form-data">
-    <!-- 1. 물품 이름 -->
-    <div class="mb-3">
-      <label class="form-label">물품 이름</label>
-      <input type="text" name="title" class="form-control" required placeholder="예: 스텔라이브 장패드">
-    </div>
-
-    <!-- 2. 물품 사진 -->
-    <div class="mb-3">
-      <label class="form-label">물품 사진</label>
-      <input type="file" name="image" class="form-control" accept="image/*" required>
-    </div>
-
-    <!-- 3. 조건 설정 (팔로우/구독 기간) -->
-    <div class="mb-3">
-      <label class="form-label">최소 팔로우 / 구독 기간 (필수 조건)</label>
-      <div class="input-group">
-        <input type="number" name="min_months" class="form-control" value="1" min="1" required>
-        <span class="input-group-text">개월 이상</span>
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">✨ 나눔 물품 등록</h4>
       </div>
-      <small class="text-muted">학생은 팔로우+학생증, 성인은 구독 기반으로 적용됩니다.</small>
-    </div>
+      <div class="card-body">
+        <form action="/create" method="POST" enctype="multipart/form-data">
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold">나눔 굿즈 제목</label>
+            <input type="text" name="title" class="form-control" placeholder="예: 시라유키 히나 아크릴 스탠드 나눔합니다" required>
+          </div>
 
-    <!-- 4. 주접글 조건 -->
-    <div class="mb-3">
-      <label class="form-label">주접글 작성 조건</label>
-      <div>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" name="require_comment" id="comment_yes" value="true">
-          <label class="form-check-label" for="comment_yes">쓴다</label>
-        </div>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" name="require_comment" id="comment_no" value="false" checked>
-          <label class="form-check-label" for="comment_no">안 쓴다</label>
-        </div>
+          <!-- 스텔라이브 11명 멤버 선택 -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">🎯 대상 스텔라이브 멤버 (11명)</label>
+            <select name="target_member" class="form-select" required>
+              {% for member in members %}
+                <option value="{{ member }}">{{ member }}</option>
+              {% endfor %}
+            </select>
+            <small class="text-muted">어떤 멤버의 치지직 팔로우/구독 조건을 적용할지 선택하세요.</small>
+          </div>
+
+          <!-- 치지직 필수 팔로우/구독 기간 -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">📺 필수 치지직 팔로우/구독 기간 (개월)</label>
+            <input type="number" name="min_months" class="form-control" value="1" min="1" required>
+            <small class="text-muted">신청자가 증명해야 하는 해당 멤버의 최소 치지직 팔로우/구독 개월 수입니다.</small>
+          </div>
+
+          <div class="mb-3 form-check">
+            <input type="checkbox" name="require_comment" value="true" class="form-check-input" id="reqComment">
+            <label class="form-check-label fw-bold" for="reqComment">주접글(덕질 인증글) 필수 제출 받기</label>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">굿즈 사진</label>
+            <input type="file" name="image" class="form-control" accept="image/*">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">나눔 마감 일시</label>
+            <input type="datetime-local" name="end_date" class="form-control" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">나눔 물품 등록하기</button>
+        </form>
       </div>
     </div>
-
-    <!-- 5. 마감 기간 -->
-    <div class="mb-3">
-      <label class="form-label">나눔 마감 일시</label>
-      <input type="datetime-local" name="end_date" class="form-control" required>
-    </div>
-
-    <button type="submit" class="btn btn-primary w-100">등록하기</button>
-  </form>
+  </div>
 </div>
 {% endblock %}
