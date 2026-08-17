@@ -1,11 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <div>
-    <h2>✨ 진행 중인 굿즈 나눔</h2>
-    <p class="text-muted mb-0">스텔라이브 굿즈를 나누고 함께 즐겨보세요!</p>
-  </div>
-  <a href="/create" class="btn btn-primary fw-bold">+ 나눔 등록하기</a>
+<div class="mb-4">
+  <h2>✨ 진행 중인 굿즈 나눔</h2>
+  <p class="text-muted mb-0">스텔라이브 굿즈를 나누고 함께 즐겨보세요!</p>
 </div>
 
 <div class="row row-cols-1 row-cols-md-3 g-4">
@@ -53,8 +50,7 @@
   </div>
   {% else %}
   <div class="col-12 text-center py-5">
-    <p class="text-muted fs-5">등록된 나눔 물품이 없습니다. 첫 나눔을 등록해 보세요!</p>
-    <a href="/create" class="btn btn-primary">나눔 등록하러 가기</a>
+    <p class="text-muted fs-5">현재 등록된 나눔 물품이 없습니다.</p>
   </div>
   {% endfor %}
 </div>
