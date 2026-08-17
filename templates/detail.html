@@ -1,107 +1,151 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4" style="max-width: 800px;">
-  <div class="card mb-4">
-    {% if giveaway.image_url %}
-    <img src="{{ giveaway.image_url }}" class="card-img-top" style="max-height: 400px; object-fit: cover;">
+<div class="row">
+  <!-- 나눔 정보 -->
+  <div class="col-md-5 mb-4">
+    <div class="card shadow-sm">
+      {% if giveaway.image_url %}
+      <img src="{{ giveaway.image_url }}" class="card-img-top" style="max-height: 350px; object-fit: cover;">
+      {% endif %}
+      <div class="card-body">
+        <span class="badge bg-primary mb-2">{{ giveaway.target_member }}</span>
+        {% if giveaway.status == '진행중' %}
+        <span class="badge bg-success mb-2">진행중</span>
+        {% else %}
+        <span class="badge bg-secondary mb-2">마감</span>
+        {% endif %}
+
+        <h3 class="card-title fw-bold">{{ giveaway.title }}</h3>
+        <hr>
+        <p><b>👑 나눔 진행자:</b> {{ giveaway.giver_id }}</p>
+        <p><b>🎯 대상 멤버:</b> {{ giveaway.target_member }}</p>
+        <p><b>📺 치지직 요건:</b> {{ giveaway.target_member }} {{ giveaway.min_months }}개월 이상 팔로우/구독 인증</p>
+        <p><b>📝 주접글 요구:</b> {% if giveaway.require_comment %}필수{% else %}선택사항{% endif %}</p>
+        <p><b>⏰ 마감 일시:</b> {{ giveaway.end_date.strftime('%Y-%m-%d %H:%M') }}</p>
+
+        {% if giveaway.status == '마감' %}
+        <div class="alert alert-warning mt-3">
+          🏆 <b>최종 당첨자:</b> {{ giveaway.winner_id }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 나눔 신청 양식 -->
+  <div class="col-md-7 mb-4">
+    {% if giveaway.status == '진행중' %}
+    <div class="card shadow-sm">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">📥 나눔 신청하기</h5>
+      </div>
+      <div class="card-body">
+        <form action="/giveaway/{{ giveaway.id }}/apply" method="POST" enctype="multipart/form-data">
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold">1. X (트위터) 아이디 / 닉네임</label>
+            <input type="text" name="x_nickname" class="form-control" placeholder="@twitter_handle" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">2. 치지직 닉네임 & 팔로우 인증</label>
+            <input type="text" name="chzzk_nickname" class="form-control mb-2" placeholder="치지직 닉네임 입력" required>
+            <label class="form-label text-muted small">[{{ giveaway.target_member }}] {{ giveaway.min_months }}개월 이상 팔로우/구독 캡처 이미지</label>
+            <input type="file" name="chzzk_proof_image" class="form-control" accept="image/*" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">3. 신분 구분 및 학생증 인증</label>
+            <select name="user_type" class="form-select mb-2" onchange="document.getElementById('student_proof_box').style.display = (this.value === 'student') ? 'block' : 'none';">
+              <option value="adult">성인</option>
+              <option value="student">학생 (초/중/고/대학생)</option>
+            </select>
+            
+            <div id="student_proof_box" style="display: none;" class="p-3 border rounded bg-light">
+              <label class="form-label text-danger fw-bold">🎓 학생증 사진 첨부 (필수)</label>
+              <input type="file" name="proof_image" class="form-control" accept="image/*">
+            </div>
+          </div>
+
+          {% if giveaway.require_comment %}
+          <div class="mb-3">
+            <label class="form-label fw-bold">4. 주접글 (필수 작성)</label>
+            <textarea name="comment" class="form-control" rows="3" placeholder="멤버 및 굿즈에 대한 사랑을 보여주세요!" required></textarea>
+          </div>
+          {% endif %}
+
+          <button type="submit" class="btn btn-success w-100 py-2 fw-bold">나눔 신청서 제출하기</button>
+        </form>
+      </div>
+    </div>
     {% endif %}
-    <div class="card-body">
-      <h3>{{ giveaway.title }}</h3>
-      <p><b>등록자:</b> {{ giveaway.giver_id }}</p>
-      <p><b>상태:</b> <span class="badge bg-info">{{ giveaway.status }}</span></p>
-      <p><b>필수 조건:</b> 최소 {{ giveaway.min_months }}개월 이상 팔로우/구독</p>
-      <p><b>주접글 조건:</b> {% if giveaway.require_comment %}필수 작성{% else %}없음{% endif %}</p>
-      <p><b>마감 일시:</b> {{ giveaway.end_date.strftime('%Y-%m-%d %H:%M') }}</p>
-      
-      {% if giveaway.status == '마감' %}
-      <div class="alert alert-success mt-3">
-        🎉 <b>당첨자:</b> {{ giveaway.winner_id }}
-      </div>
-      {% endif %}
-    </div>
   </div>
-
-  <!-- 나눔하는 사람 전용: 정보/조건/기간 수정 폼 -->
-  {% if giveaway.giver_id == session.get('user_id', '익명나눔러') and giveaway.status == '진행중' %}
-  <div class="card p-3 mb-4 border-warning">
-    <h4>⚙️ 나눔 조건 및 기간 수정</h4>
-    <form action="/giveaway/{{ giveaway.id }}/edit" method="POST">
-      <div class="mb-2">
-        <label>물품 이름</label>
-        <input type="text" name="title" value="{{ giveaway.title }}" class="form-control" required>
-      </div>
-      <div class="mb-2">
-        <label>최소 팔로우/구독 개월 수</label>
-        <input type="number" name="min_months" value="{{ giveaway.min_months }}" min="1" class="form-control" required>
-      </div>
-      <div class="mb-2">
-        <label>주접글 조건</label>
-        <select name="require_comment" class="form-select">
-          <option value="true" {% if giveaway.require_comment %}selected{% endif %}>쓴다</option>
-          <option value="false" {% if not giveaway.require_comment %}selected{% endif %}>안 쓴다</option>
-        </select>
-      </div>
-      <div class="mb-2">
-        <label>마감 기간 변경</label>
-        <input type="datetime-local" name="end_date" class="form-control">
-      </div>
-      <button type="submit" class="btn btn-warning mt-2">수정 사항 저장</button>
-    </form>
-  </div>
-  {% endif %}
-
-  <!-- 나눔 신청하는 사람 전용: 신청 양식 -->
-  {% if giveaway.status == '진행중' %}
-  <div class="card p-3">
-    <h4>📝 나눔 신청하기</h4>
-    
-    <!-- 네이버 연동 버튼 (팔로우/구독 자동 확인) -->
-    <div class="alert alert-light border mb-3">
-      <p class="mb-1"><b>1. 네이버 계정 연동</b></p>
-      <button type="button" class="btn btn-success btn-sm">네이버 로그인하고 팔로우/구독 기간 자동 확인</button>
-    </div>
-
-    <form action="/giveaway/{{ giveaway.id }}/apply" method="POST" enctype="multipart/form-data">
-      <!-- 본인 X 닉네임 입력 -->
-      <div class="mb-3">
-        <label class="form-label">본인 X(트위터) 닉네임/아이디</label>
-        <input type="text" name="x_nickname" class="form-control" placeholder="@username" required>
-      </div>
-
-      <!-- 학생 / 성인 구분 -->
-      <div class="mb-3">
-        <label class="form-label">신분 구분</label>
-        <select name="user_type" class="form-select" id="userTypeSelect" onchange="toggleProofInput()">
-          <option value="adult">성인 (치지직 구독 자격)</option>
-          <option value="student">학생 (치지직 팔로우 + 학생증 인증)</option>
-        </select>
-      </div>
-
-      <!-- 학생증 인증샷 첨부 (학생 선택 시 표시) -->
-      <div class="mb-3" id="proofContainer" style="display: none;">
-        <label class="form-label">학생증 인증 사진 첨부</label>
-        <input type="file" name="proof_image" class="form-control" accept="image/*">
-      </div>
-
-      <!-- 주접글 작성 (나눔 조건이 '쓴다'일 때만 표시) -->
-      {% if giveaway.require_comment %}
-      <div class="mb-3">
-        <label class="form-label">주접글 작성 (필수)</label>
-        <textarea name="comment" class="form-control" rows="3" placeholder="응원의 한마디를 남겨주세요!" required></textarea>
-      </div>
-      {% endif %}
-
-      <button type="submit" class="btn btn-primary w-100">신청 제출하기</button>
-    </form>
-  </div>
-  {% endif %}
 </div>
 
-<script>
-function toggleProofInput() {
-  var type = document.getElementById('userTypeSelect').value;
-  var proofDiv = document.getElementById('proofContainer');
-  proofDiv.style.display = (type === 'student') ? 'block' : 'none';
-}
-</script>
+<!-- 🔥 [나눔 진행자 전용] 제출된 신청서 및 학생증/주접글 확인란 -->
+{% if session.get('user_id') == giveaway.giver_id %}
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card border-primary shadow">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">📋 [나눔 진행자 전용] 신청서 목록 (총 {{ applications|length }}건)</h5>
+        <small>신청자의 학생증과 치지직 팔로우 및 주접글을 직접 확인하세요.</small>
+      </div>
+      <div class="card-body">
+        {% if applications %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>신청자(네이버ID)</th>
+                <th>X(트위터)</th>
+                <th>치지직 닉네임 / 팔로우 인증</th>
+                <th>학생 여부 / 학생증</th>
+                <th>주접글</th>
+                <th>신청일시</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for app in applications %}
+              <tr>
+                <td><strong>{{ app.applicant_id }}</strong></td>
+                <td>{{ app.x_nickname }}</td>
+                <td>
+                  {{ app.chzzk_nickname }}<br>
+                  {% if app.chzzk_proof_image %}
+                    <a href="{{ app.chzzk_proof_image }}" target="_blank" class="btn btn-sm btn-outline-info mt-1">인증샷 보기</a>
+                  {% else %}
+                    <span class="text-muted">없음</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if app.is_student %}
+                    <span class="badge bg-warning text-dark">학생</span><br>
+                    {% if app.proof_image %}
+                      <a href="{{ app.proof_image }}" target="_blank" class="btn btn-sm btn-outline-danger mt-1">학생증 보기</a>
+                    {% endif %}
+                  {% else %}
+                    <span class="badge bg-secondary">성인</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div style="max-width: 250px; whitespace: normal;">
+                    {{ app.comment if app.comment else '내용 없음' }}
+                  </div>
+                </td>
+                <td><small class="text-muted">{{ app.created_at.strftime('%m-%d %H:%M') }}</small></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-center text-muted py-3 mb-0">아직 제출된 신청서가 없습니다.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}
