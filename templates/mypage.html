@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>내 마이페이지</h2>
+
+<h3>내가 신청한 나눔 내역</h3>
+<ul>
+    {% for app in applications %}
+    <li>
+        나눔 ID: {{ app.giveaway_id }} | 상태: <strong>{{ app.status }}</strong>
+        {% if app.status == '당첨' %} 🎉 축하합니다! 당첨되었습니다. {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+
+<h3>내가 등록한 나눔 물품 관리</h3>
+<ul>
+    {% for g in giveaways %}
+    <li>
+        {{ g.title }} | 상태: {{ g.status }} 
+        {% if g.winner_id %} (당첨자 ID: {{ g.winner_id }}) {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>🎁 나눔 물품 등록</h2>
+<form action="/create" method="POST" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:15px; max-width:500px;">
+    <input type="text" name="title" placeholder="나눔 물품 이름" required style="padding:10px;">
+    <input type="text" name="member_tag" placeholder="멤버 태그 (예: #강지, #유니)" required style="padding:10px;">
+    
+    <label>나눔 방식:</label>
+    <select name="giveaway_type" style="padding:10px;">
+        <option value="통판">온라인 우편/통판 나눔</option>
+        <option value="현장">오프라인 현장 나눔</option>
+    </select>
+
+    <label>신청 조건 설정:</label>
+    <select name="condition_type" style="padding:10px;">
+        <option value="follow">치지직 팔로우 (학생/학생증 첨부 필요)</option>
+        <option value="sub">구독 개월 수 (성인)</option>
+        <option value="praise">주접글 작성 조건</option>
+    </select>
+
+    <input type="number" name="min_sub_months" placeholder="최소 구독 개월 수 (구독 조건 시)" style="padding:10px;">
+    
+    <label>마감 일시:</label>
+    <input type="datetime-local" name="end_date" required style="padding:10px;">
+
+    <label>물품 사진 첨부:</label>
+    <input type="file" name="image" required>
+
+    <button type="submit" class="btn btn-success" style="padding:12px;">등록하기</button>
+</form>
+{% endblock %}

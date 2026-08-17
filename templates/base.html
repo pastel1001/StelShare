@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스텔나눔 - 팬 굿즈 나눔 플랫폼</title>
+    <style>
+        body { font-family: sans-serif; background: #0d0f17; color: #fff; margin: 0; padding: 20px; }
+        nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #232736; padding-bottom: 15px; margin-bottom: 30px; }
+        a { color: #00ffa3; text-decoration: none; margin-left: 15px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .btn { background: #2563eb; color: #fff; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; }
+        .btn-success { background: #10b981; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+        .bg-active { background: #10b981; } .bg-closed { background: #6b7280; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <h2><a href="/" style="margin:0; color:#00ffa3;">🎁 스텔나눔</a></h2>
+            <div>
+                <a href="/">홈</a>
+                <a href="/create">나눔 등록하기</a>
+                {% if session.get('user_id') %}
+                    <a href="/mypage">마이페이지</a>
+                {% else %}
+                    <a href="/login/naver" class="btn">네이버 로그인</a>
+                {% endif %}
+            </div>
+        </nav>
+        {% block content %}{% endblock %}
+        <footer style="text-align:center; margin-top:50px; color:#525866; font-size:12px;">
+            이 사이트는 팬이 운영하는 비공식 나눔 안내 사이트입니다.
+        </footer>
+    </div>
+</body>
+</html>

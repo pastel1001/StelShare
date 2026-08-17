@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ giveaway.title }}</h2>
+<p>멤버: {{ giveaway.member_tag }} | 마감: {{ giveaway.end_date.strftime('%Y-%m-%d %H:%M') }}</p>
+
+<hr style="border-color:#232736;">
+
+<h3>나눔 신청 조건 검증</h3>
+{% if can_apply %}
+    <p style="color:#10b981;">✅ 조건이 충족되었습니다! 신청서를 작성해 주세요.</p>
+    <form action="/giveaway/{{ giveaway.id }}" method="POST" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:15px; max-width:500px;">
+        {% if giveaway.condition_type == 'follow' %}
+            <label>학생증 인증샷 업로드 (이름/생년월일 마스킹 필수):</label>
+            <input type="file" name="cert_image" required>
+        {% endif %}
+        
+        <label>주접글 또는 전달할 메시지:</label>
+        <textarea name="fan_text" rows="4" placeholder="애정이 담긴 글을 작성해 주세요." style="padding:10px;"></textarea>
+
+        <button type="submit" class="btn btn-success">나눔 신청서 제출하기</button>
+    </form>
+{% else %}
+    <p style="color:#ef4444;">❌ 신청할 수 없습니다: {{ fail_reason }}</p>
+{% endif %}
+{% endblock %}
