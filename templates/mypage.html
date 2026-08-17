@@ -1,24 +1,86 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>내 마이페이지</h2>
+<div class="container" style="max-width: 900px;">
+  <h2 class="mb-4">👤 마이페이지</h2>
 
-<h3>내가 신청한 나눔 내역</h3>
-<ul>
-    {% for app in applications %}
-    <li>
-        나눔 ID: {{ app.giveaway_id }} | 상태: <strong>{{ app.status }}</strong>
-        {% if app.status == '당첨' %} 🎉 축하합니다! 당첨되었습니다. {% endif %}
-    </li>
-    {% endfor %}
-</ul>
+  <!-- 1. 내가 올린 나눔 물품 -->
+  <div class="card mb-4 p-3">
+    <h4 class="mb-3">🎁 내가 등록한 나눔</h4>
+    {% if my_giveaways %}
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>물품명</th>
+            <th>조건</th>
+            <th>마감일</th>
+            <th>상태</th>
+            <th>당첨자</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for g in my_giveaways %}
+          <tr>
+            <td><b>{{ g.title }}</b></td>
+            <td>{{ g.min_months }}개월 / 주접({% if g.require_comment %}O{% else %}X{% endif %})</td>
+            <td>{{ g.end_date.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>
+              {% if g.status == '진행중' %}
+              <span class="badge bg-success">진행중</span>
+              {% else %}
+              <span class="badge bg-secondary">마감</span>
+              {% endif %}
+            </td>
+            <td><small>{{ g.winner_id if g.winner_id else '-' }}</small></td>
+            <td><a href="/giveaway/{{ g.id }}" class="btn btn-sm btn-outline-secondary">보기/수정</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">내가 등록한 나눔 물품이 없습니다.</p>
+    {% endif %}
+  </div>
 
-<h3>내가 등록한 나눔 물품 관리</h3>
-<ul>
-    {% for g in giveaways %}
-    <li>
-        {{ g.title }} | 상태: {{ g.status }} 
-        {% if g.winner_id %} (당첨자 ID: {{ g.winner_id }}) {% endif %}
-    </li>
-    {% endfor %}
-</ul>
+  <!-- 2. 내가 신청한 나눔 내역 -->
+  <div class="card p-3">
+    <h4 class="mb-3">📝 내가 신청한 나눔 내역</h4>
+    {% if my_applications %}
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>물품명</th>
+            <th>작성한 X 닉네임</th>
+            <th>신분 구분</th>
+            <th>신청일</th>
+            <th>상세</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app_item in my_applications %}
+          <tr>
+            <td><b>{{ app_item.giveaway.title }}</b></td>
+            <td>{{ app_item.x_nickname }}</td>
+            <td>
+              {% if app_item.is_student %}
+              <span class="badge bg-info text-dark">학생 (팔로우)</span>
+              {% else %}
+              <span class="badge bg-warning text-dark">성인 (구독)</span>
+              {% endif %}
+            </td>
+            <td>{{ app_item.created_at.strftime('%Y-%m-%d') }}</td>
+            <td><a href="/giveaway/{{ app_item.giveaway_id }}" class="btn btn-sm btn-outline-primary">이동</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">아직 신청한 나눔이 없습니다.</p>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}
