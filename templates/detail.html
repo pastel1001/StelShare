@@ -1,17 +1,107 @@
-<form action="/giveaway/{{ giveaway.id }}/apply" method="POST" enctype="multipart/form-data">
-  <!-- X 닉네임 입력 (필수) -->
-  <div class="mb-3">
-    <label class="form-label">본인 X(트위터) 닉네임/아이디</label>
-    <input type="text" name="x_nickname" class="form-control" placeholder="@username 또는 닉네임" required>
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4" style="max-width: 800px;">
+  <div class="card mb-4">
+    {% if giveaway.image_url %}
+    <img src="{{ giveaway.image_url }}" class="card-img-top" style="max-height: 400px; object-fit: cover;">
+    {% endif %}
+    <div class="card-body">
+      <h3>{{ giveaway.title }}</h3>
+      <p><b>등록자:</b> {{ giveaway.giver_id }}</p>
+      <p><b>상태:</b> <span class="badge bg-info">{{ giveaway.status }}</span></p>
+      <p><b>필수 조건:</b> 최소 {{ giveaway.min_months }}개월 이상 팔로우/구독</p>
+      <p><b>주접글 조건:</b> {% if giveaway.require_comment %}필수 작성{% else %}없음{% endif %}</p>
+      <p><b>마감 일시:</b> {{ giveaway.end_date.strftime('%Y-%m-%d %H:%M') }}</p>
+      
+      {% if giveaway.status == '마감' %}
+      <div class="alert alert-success mt-3">
+        🎉 <b>당첨자:</b> {{ giveaway.winner_id }}
+      </div>
+      {% endif %}
+    </div>
   </div>
 
-  <!-- 주접글 조건이 '쓴다'일 때만 표시 -->
-  {% if giveaway.require_comment %}
-  <div class="mb-3">
-    <label class="form-label">주접글 작성</label>
-    <textarea name="comment" class="form-control" rows="3" required placeholder="응원의 한마디를 남겨주세요!"></textarea>
+  <!-- 나눔하는 사람 전용: 정보/조건/기간 수정 폼 -->
+  {% if giveaway.giver_id == session.get('user_id', '익명나눔러') and giveaway.status == '진행중' %}
+  <div class="card p-3 mb-4 border-warning">
+    <h4>⚙️ 나눔 조건 및 기간 수정</h4>
+    <form action="/giveaway/{{ giveaway.id }}/edit" method="POST">
+      <div class="mb-2">
+        <label>물품 이름</label>
+        <input type="text" name="title" value="{{ giveaway.title }}" class="form-control" required>
+      </div>
+      <div class="mb-2">
+        <label>최소 팔로우/구독 개월 수</label>
+        <input type="number" name="min_months" value="{{ giveaway.min_months }}" min="1" class="form-control" required>
+      </div>
+      <div class="mb-2">
+        <label>주접글 조건</label>
+        <select name="require_comment" class="form-select">
+          <option value="true" {% if giveaway.require_comment %}selected{% endif %}>쓴다</option>
+          <option value="false" {% if not giveaway.require_comment %}selected{% endif %}>안 쓴다</option>
+        </select>
+      </div>
+      <div class="mb-2">
+        <label>마감 기간 변경</label>
+        <input type="datetime-local" name="end_date" class="form-control">
+      </div>
+      <button type="submit" class="btn btn-warning mt-2">수정 사항 저장</button>
+    </form>
   </div>
   {% endif %}
 
-  <button type="submit" class="btn btn-primary">신청하기</button>
-</form>
+  <!-- 나눔 신청하는 사람 전용: 신청 양식 -->
+  {% if giveaway.status == '진행중' %}
+  <div class="card p-3">
+    <h4>📝 나눔 신청하기</h4>
+    
+    <!-- 네이버 연동 버튼 (팔로우/구독 자동 확인) -->
+    <div class="alert alert-light border mb-3">
+      <p class="mb-1"><b>1. 네이버 계정 연동</b></p>
+      <button type="button" class="btn btn-success btn-sm">네이버 로그인하고 팔로우/구독 기간 자동 확인</button>
+    </div>
+
+    <form action="/giveaway/{{ giveaway.id }}/apply" method="POST" enctype="multipart/form-data">
+      <!-- 본인 X 닉네임 입력 -->
+      <div class="mb-3">
+        <label class="form-label">본인 X(트위터) 닉네임/아이디</label>
+        <input type="text" name="x_nickname" class="form-control" placeholder="@username" required>
+      </div>
+
+      <!-- 학생 / 성인 구분 -->
+      <div class="mb-3">
+        <label class="form-label">신분 구분</label>
+        <select name="user_type" class="form-select" id="userTypeSelect" onchange="toggleProofInput()">
+          <option value="adult">성인 (치지직 구독 자격)</option>
+          <option value="student">학생 (치지직 팔로우 + 학생증 인증)</option>
+        </select>
+      </div>
+
+      <!-- 학생증 인증샷 첨부 (학생 선택 시 표시) -->
+      <div class="mb-3" id="proofContainer" style="display: none;">
+        <label class="form-label">학생증 인증 사진 첨부</label>
+        <input type="file" name="proof_image" class="form-control" accept="image/*">
+      </div>
+
+      <!-- 주접글 작성 (나눔 조건이 '쓴다'일 때만 표시) -->
+      {% if giveaway.require_comment %}
+      <div class="mb-3">
+        <label class="form-label">주접글 작성 (필수)</label>
+        <textarea name="comment" class="form-control" rows="3" placeholder="응원의 한마디를 남겨주세요!" required></textarea>
+      </div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary w-100">신청 제출하기</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function toggleProofInput() {
+  var type = document.getElementById('userTypeSelect').value;
+  var proofDiv = document.getElementById('proofContainer');
+  proofDiv.style.display = (type === 'student') ? 'block' : 'none';
+}
+</script>
+{% endblock %}
