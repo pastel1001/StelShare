@@ -1,17 +1,17 @@
-{% if session.get('user_id') == giveaway.giver_id and giveaway.status == '진행중' %}
-<form action="/giveaway/{{ giveaway.id }}/edit_conditions" method="POST" class="border p-3 rounded mb-4">
-  <h5>나눔 조건 변경</h5>
-  <div class="mb-2">
-    <label>팔로우/구독 개월 수</label>
-    <input type="number" name="min_months" value="{{ giveaway.min_months }}" min="1" class="form-control">
+<form action="/giveaway/{{ giveaway.id }}/apply" method="POST" enctype="multipart/form-data">
+  <!-- X 닉네임 입력 (필수) -->
+  <div class="mb-3">
+    <label class="form-label">본인 X(트위터) 닉네임/아이디</label>
+    <input type="text" name="x_nickname" class="form-control" placeholder="@username 또는 닉네임" required>
   </div>
-  <div class="mb-2">
-    <label>주접글 조건</label>
-    <select name="require_comment" class="form-select">
-      <option value="true" {% if giveaway.require_comment %}selected{% endif %}>쓴다</option>
-      <option value="false" {% if not giveaway.require_comment %}selected{% endif %}>안 쓴다</option>
-    </select>
+
+  <!-- 주접글 조건이 '쓴다'일 때만 표시 -->
+  {% if giveaway.require_comment %}
+  <div class="mb-3">
+    <label class="form-label">주접글 작성</label>
+    <textarea name="comment" class="form-control" rows="3" required placeholder="응원의 한마디를 남겨주세요!"></textarea>
   </div>
-  <button type="submit" class="btn btn-warning btn-sm">조건 수정하기</button>
+  {% endif %}
+
+  <button type="submit" class="btn btn-primary">신청하기</button>
 </form>
-{% endif %}
