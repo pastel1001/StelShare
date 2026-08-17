@@ -1,17 +1,52 @@
-<!-- 팔로우/구독 개월 수 (필수) -->
-<div class="mb-3">
-  <label class="form-label">최소 팔로우/구독 기간 (개월)</label>
-  <input type="number" name="min_months" class="form-control" value="1" min="1" required>
-</div>
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4" style="max-width: 600px;">
+  <h2>🎁 나눔 물품 등록</h2>
+  <form action="/create" method="POST" enctype="multipart/form-data">
+    <!-- 1. 물품 이름 -->
+    <div class="mb-3">
+      <label class="form-label">물품 이름</label>
+      <input type="text" name="title" class="form-control" required placeholder="예: 스텔라이브 장패드">
+    </div>
 
-<!-- 주접글 여부 선택 -->
-<div class="mb-3">
-  <label class="form-label">주접글 작성 조건</label>
-  <div>
-    <input type="radio" name="require_comment" value="true" id="comment_yes">
-    <label for="comment_yes">쓴다</label>
-    
-    <input type="radio" name="require_comment" value="false" id="comment_no" checked>
-    <label for="comment_no">안 쓴다</label>
-  </div>
+    <!-- 2. 물품 사진 -->
+    <div class="mb-3">
+      <label class="form-label">물품 사진</label>
+      <input type="file" name="image" class="form-control" accept="image/*" required>
+    </div>
+
+    <!-- 3. 조건 설정 (팔로우/구독 기간) -->
+    <div class="mb-3">
+      <label class="form-label">최소 팔로우 / 구독 기간 (필수 조건)</label>
+      <div class="input-group">
+        <input type="number" name="min_months" class="form-control" value="1" min="1" required>
+        <span class="input-group-text">개월 이상</span>
+      </div>
+      <small class="text-muted">학생은 팔로우+학생증, 성인은 구독 기반으로 적용됩니다.</small>
+    </div>
+
+    <!-- 4. 주접글 조건 -->
+    <div class="mb-3">
+      <label class="form-label">주접글 작성 조건</label>
+      <div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="require_comment" id="comment_yes" value="true">
+          <label class="form-check-label" for="comment_yes">쓴다</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="require_comment" id="comment_no" value="false" checked>
+          <label class="form-check-label" for="comment_no">안 쓴다</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. 마감 기간 -->
+    <div class="mb-3">
+      <label class="form-label">나눔 마감 일시</label>
+      <input type="datetime-local" name="end_date" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">등록하기</button>
+  </form>
 </div>
+{% endblock %}
