@@ -172,7 +172,8 @@ def check_and_draw_winners():
             giveaway.status = "마감 (신청자 없음)"
         db.session.commit()
 
+with app.app_context():
+    db.create_all()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
